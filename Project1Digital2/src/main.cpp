@@ -31,6 +31,11 @@
 #define freqPWMled 5000 //Frecuencia de led en Hz
 #define resolution 8    //1-16 bits de resolucion
 
+// parte 3
+#define servo 25
+#define freqPWMservo 50
+#define pwmChannel4 4 //canal para el servo
+
 //timer
 #define prescaler 80
 
@@ -38,6 +43,8 @@
 //Prototipos de funciones
 //*****************************************************************************************
 void configurarPWM();
+
+void IRAM_ATTR b1Temp();
 
 //*****************************************************************************************
 //Variables Globales
@@ -50,9 +57,16 @@ float Voltaje = 0.0;
 int b1State = 0;
 int modo = 0; //que no empiece la lectura aun
 
+//LEDS
+int ledDutyCycle = 0;
+
+//SERVO
+int sDutyCycle = 7;
+
 //*****************************************************************************************
 //ISR
 //*****************************************************************************************
+
 void IRAM_ATTR b1Temp()
 {
     //para el sensor de temperatura
@@ -60,11 +74,14 @@ void IRAM_ATTR b1Temp()
   //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
   LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
 
+  delay (100);
+
   //Imprimir en pantalla de Viasual para comprobar lectura
   Serial.print("Temperatura = ");
   Serial.print("LM35_Temp_Sensor");
   Serial.print(" °C ");
 }
+
 //*****************************************************************************************
 //Código de configuración
 //*****************************************************************************************
@@ -73,9 +90,12 @@ void setup() {
   Serial.begin(115200);
   pinMode(b1, INPUT_PULLUP);
   attachInterrupt(b1, b1Temp, HIGH);
+
   pinMode(ledR, OUTPUT);
   pinMode(ledV, OUTPUT);
   pinMode(ledA, OUTPUT);
+
+  pinMode(servo, OUTPUT);
   configurarPWM();
 
 }
@@ -84,10 +104,7 @@ void setup() {
 //Loop Principal
 //*****************************************************************************************
 void loop() {
-  if(b1State == 1)
-  {
-    b1State = 0;
-  }
+
   switch(modo)
   {
     case 1:
@@ -112,8 +129,9 @@ void loop() {
       ledcWrite(pwmChannel2, 0);
       ledcWrite(pwmChannel3, 0);      
     }
-  }
-  
+
+    break;
+  } 
 
 }
 //calibracion y lectura de ADC
@@ -135,8 +153,12 @@ void configurarPWM()
   ledcSetup(pwmChannel2, freqPWMled, resolution);
   ledcSetup(pwmChannel3, freqPWMled, resolution);
 
+  ledcSetup(pwmChannel4, freqPWMservo, resolution);
+
     //Paso 2: Relacionar el GPIO y el canal
   ledcAttachPin(ledR, pwmChannel1);
   ledcAttachPin(ledV, pwmChannel2);
   ledcAttachPin(ledA, pwmChannel3);
+
+  ledcAttachPin(servo, pwmChannel4);
 }
