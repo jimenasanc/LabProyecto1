@@ -20,9 +20,9 @@
 #define b1 25
 
 // parte 2
-#define ledR
-#define ledV
-#define ledA
+#define ledR 27
+#define ledV 14
+#define ledA 12
 
 #define pwmChannel1 1 // canal para led roja
 #define pwmChannel2 2 // canal para led verde
@@ -33,8 +33,6 @@
 
 //timer
 #define prescaler 80
-
-
 
 //*****************************************************************************************
 //Prototipos de funciones
@@ -50,7 +48,7 @@ float Voltaje = 0.0;
 //float 
 
 int b1State = 0;
-//int modo = 0; //que no empiece la lectura aun
+int modo = 0; //que no empiece la lectura aun
 
 //*****************************************************************************************
 //ISR
@@ -59,7 +57,7 @@ void IRAM_ATTR b1Temp()
 {
     //para el sensor de temperatura
   LM35_Sensor = analogRead(SensorTemp); //conecta la variable adc float con el pin de salida
-  Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
+  //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
   LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
 
   //Imprimir en pantalla de Viasual para comprobar lectura
@@ -90,7 +88,7 @@ void loop() {
   {
     b1State = 0;
   }
-  switch()
+  switch(modo)
   {
     case 1:
     //si la temperatura es menor a 37 °C, el color del semaforo es verde
