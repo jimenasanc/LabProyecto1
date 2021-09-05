@@ -35,6 +35,7 @@
 #define servo 25
 #define freqPWMservo 50
 #define pwmChannel4 4 //canal para el servo
+#define tiempoS 5
 
 //timer
 #define prescaler 80
@@ -47,6 +48,8 @@ void configurarPWM();
 void IRAM_ATTR b1Temp();
 
 void LEDStemp();
+
+void serfuncionServo();
 
 //*****************************************************************************************
 //Variables Globales
@@ -138,7 +141,7 @@ void configurarPWM()
 }
 
 //*****************************************************************************************
-//Función de leds
+//Función de LEDS
 //*****************************************************************************************
 void LEDStemp()
 {
@@ -163,4 +166,34 @@ void LEDStemp()
       ledcWrite(pwmChannel2, 0);
       ledcWrite(pwmChannel3, 0);      
     }  
+}
+
+//*****************************************************************************************
+//Función de Servo
+//*****************************************************************************************
+void serfuncionServo()
+{
+  
+  if (LM35_Sensor <= 20.0) //pase el duty cycle a 8 bits, por lo que el rango irá de 7 a 32
+  {
+    sDutyCycle = 7.8;
+
+    delay(tiempoS);
+    ledcWrite(pwmChannel4, sDutyCycle);
+  }
+  else if(20 <= LM35_Sensor && LM35_Sensor <= 40)
+  {
+    sDutyCycle = 18;
+
+    delay(tiempoS);
+    ledcWrite(pwmChannel4, sDutyCycle);
+  }
+  else if(LM35_Sensor > 40)
+  {
+    sDutyCycle = 26;
+
+    delay(tiempoS);
+    ledcWrite(pwmChannel4, sDutyCycle);
+  }
+
 }
