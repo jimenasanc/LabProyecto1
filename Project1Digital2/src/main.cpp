@@ -46,6 +46,8 @@ void configurarPWM();
 
 void IRAM_ATTR b1Temp();
 
+void LEDStemp();
+
 //*****************************************************************************************
 //Variables Globales
 //*****************************************************************************************
@@ -105,34 +107,6 @@ void setup() {
 //*****************************************************************************************
 void loop() {
 
-  switch(modo)
-  {
-    case 1:
-    //si la temperatura es menor a 37 °C, el color del semaforo es verde
-    if(LM35_Sensor <= 20.0)
-    {
-      ledcWrite(pwmChannel1, 0);
-      ledcWrite(pwmChannel2, 255);
-      ledcWrite(pwmChannel3, 0);
-    }
-    //si la temperatura esta arriba de 37°C y abajo de 37.5°C , se enciende la led azul
-    if(20 <= LM35_Sensor && LM35_Sensor <= 40)
-    {
-      ledcWrite(pwmChannel1, 0);
-      ledcWrite(pwmChannel2, 0);
-      ledcWrite(pwmChannel3, 255);     
-    }
-    //si la temperatura es mayor a 37.5°C, el color del semaforo es rojo
-    if (LM35_Sensor > 40)
-    {
-      ledcWrite(pwmChannel1, 255);
-      ledcWrite(pwmChannel2, 0);
-      ledcWrite(pwmChannel3, 0);      
-    }
-
-    break;
-  } 
-
 }
 //calibracion y lectura de ADC
 uint32_t readADC_Cal(int ADC_Raw)
@@ -161,4 +135,32 @@ void configurarPWM()
   ledcAttachPin(ledA, pwmChannel3);
 
   ledcAttachPin(servo, pwmChannel4);
+}
+
+//*****************************************************************************************
+//Función de leds
+//*****************************************************************************************
+void LEDStemp()
+{
+    //si la temperatura es menor a 37 °C, el color del semaforo es verde
+    if(LM35_Sensor <= 20.0)
+    {
+      ledcWrite(pwmChannel1, 0);
+      ledcWrite(pwmChannel2, 255);
+      ledcWrite(pwmChannel3, 0);
+    }
+    //si la temperatura esta arriba de 37°C y abajo de 37.5°C , se enciende la led azul
+    if(20 <= LM35_Sensor && LM35_Sensor <= 40)
+    {
+      ledcWrite(pwmChannel1, 0);
+      ledcWrite(pwmChannel2, 0);
+      ledcWrite(pwmChannel3, 255);     
+    }
+    //si la temperatura es mayor a 37.5°C, el color del semaforo es rojo
+    if (LM35_Sensor > 40)
+    {
+      ledcWrite(pwmChannel1, 255);
+      ledcWrite(pwmChannel2, 0);
+      ledcWrite(pwmChannel3, 0);      
+    }  
 }
