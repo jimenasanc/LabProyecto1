@@ -11,6 +11,19 @@
 //*****************************************************************************************
 #include <Arduino.h>
 #include <esp_adc_cal.h>
+#include "AdafruitIO_WiFi.h"
+#include "Display7Seg.h"
+
+/************************ Adafruit IO Config *******************************/
+
+// visit io.adafruit.com if you need to create an account,
+// or if you need your Adafruit IO key.
+#define IO_USERNAME "your_username"
+#define IO_KEY "your_key"
+#define WIFI_SSID "your_ssid"
+#define WIFI_PASS "your_pass"
+
+AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 
 //*****************************************************************************************
 //Definición de pines
@@ -36,6 +49,20 @@
 #define freqPWMservo 50
 #define pwmChannel4 4 //canal para el servo
 #define tiempoS 5
+
+//display
+#define dA 22
+#define dB 1
+#define dC 3
+#define dD 21
+#define dE 19
+#define dF 18
+#define dG 5
+#define dP 17
+
+#define d1 16
+#define d2 4
+#define d3 2
 
 //timer
 #define prescaler 80
@@ -102,6 +129,16 @@ void setup() {
 
   pinMode(servo, OUTPUT);
   configurarPWM();
+
+  configurarDisplay(dA, dB, dC, dD , dE, dF, dG, dP);
+
+  pinMode(d1, OUTPUT);
+  pinMode(d2, OUTPUT);
+  pinMode(d3, OUTPUT);
+
+  digitalWrite(d1, LOW);
+  digitalWrite(d2, LOW);
+  digitalWrite(d3, LOW);
 
 }
 
@@ -197,3 +234,6 @@ void serfuncionServo()
   }
 
 }
+//*****************************************************************************************
+//Función Display
+//*****************************************************************************************
