@@ -99,21 +99,6 @@ int sDutyCycle = 7;
 //ISR
 //*****************************************************************************************
 
-void IRAM_ATTR b1Temp()
-{
-    //para el sensor de temperatura
-  LM35_Sensor = analogRead(SensorTemp); //conecta la variable adc float con el pin de salida
-  //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
-  LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
-
-  delay (100);
-
-  //Imprimir en pantalla de Viasual para comprobar lectura
-  Serial.print("Temperatura = ");
-  Serial.print("LM35_Temp_Sensor");
-  Serial.print(" °C ");
-}
-
 //*****************************************************************************************
 //Código de configuración
 //*****************************************************************************************
@@ -148,6 +133,23 @@ void setup() {
 void loop() {
 
 }
+
+//calibracion y lectura de ADC
+int readSensor()
+{
+     //para el sensor de temperatura
+  LM35_Sensor = analogRead(SensorTemp); //conecta la variable adc float con el pin de salida
+  //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
+  LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
+
+  delay (100);
+
+  //Imprimir en pantalla de Viasual para comprobar lectura
+  Serial.print("Temperatura = ");
+  Serial.print("LM35_Temp_Sensor");
+  Serial.print(" °C ");
+}
+
 //calibracion y lectura de ADC
 uint32_t readADC_Cal(int ADC_Raw)
 {
@@ -155,6 +157,33 @@ uint32_t readADC_Cal(int ADC_Raw)
   
   esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
   return(esp_adc_cal_raw_to_voltage(ADC_Raw, &adc_chars));
+}
+
+//*****************************************************************************************
+//Función temperatura
+//*****************************************************************************************
+void b1Temp()
+{
+  if (digitalRead(b1)== LOW)
+  {
+    b1State = HIGH;
+  }
+  else if (b1State = HIGH)
+  {
+    b1State = LOW;
+
+  //para el sensor de temperatura
+  LM35_Sensor = analogRead(SensorTemp); //conecta la variable adc float con el pin de salida
+  //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
+  LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
+
+  delay (100);
+
+  //Imprimir en pantalla de Viasual para comprobar lectura
+  Serial.print("Temperatura = ");
+  Serial.print("LM35_Temp_Sensor");
+  Serial.print(" °C ");
+  }
 }
 
 //*****************************************************************************************
@@ -237,3 +266,4 @@ void serfuncionServo()
 //*****************************************************************************************
 //Función Display
 //*****************************************************************************************
+

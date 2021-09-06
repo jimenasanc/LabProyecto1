@@ -34,7 +34,7 @@ void configurarDisplay(uint8_t A, uint8_t B, uint8_t C, uint8_t D, uint8_t E, ui
 }
 
 //Funci[on para desplegar el digito en el display de 7 segmentos
-void desplegar7Seg(uint_t digito)
+void desplegar7Seg(uint8_t digito)
 {
     switch (digito)
     {
