@@ -64,6 +64,7 @@ AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 #define d2 4
 #define d3 2
 
+#define distiempo 5
 //timer
 #define prescaler 80
 
@@ -72,11 +73,13 @@ AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 //*****************************************************************************************
 void configurarPWM();
 
-void IRAM_ATTR b1Temp();
+void b1Temp();
 
 void LEDStemp();
 
 void serfuncionServo();
+
+void Display7S(int modo);
 
 //*****************************************************************************************
 //Variables Globales
@@ -95,6 +98,11 @@ int ledDutyCycle = 0;
 //SERVO
 int sDutyCycle = 7;
 
+//Display
+int decenas = 0;
+int unidades = 0;
+int decimales = 0;
+
 //*****************************************************************************************
 //ISR
 //*****************************************************************************************
@@ -106,7 +114,6 @@ int sDutyCycle = 7;
 void setup() {
   Serial.begin(115200);
   pinMode(b1, INPUT_PULLUP);
-  attachInterrupt(b1, b1Temp, HIGH);
 
   pinMode(ledR, OUTPUT);
   pinMode(ledV, OUTPUT);
@@ -124,6 +131,10 @@ void setup() {
   digitalWrite(d1, LOW);
   digitalWrite(d2, LOW);
   digitalWrite(d3, LOW);
+  digitalWrite(servo,LOW);
+  digitalWrite(ledR,LOW);
+  digitalWrite(ledV,LOW);
+  digitalWrite(ledA,LOW);
 
 }
 
@@ -132,22 +143,32 @@ void setup() {
 //*****************************************************************************************
 void loop() {
 
-}
+//DISPLAYS
+Display7S(modo);
 
-//calibracion y lectura de ADC
-int readSensor()
-{
-     //para el sensor de temperatura
-  LM35_Sensor = analogRead(SensorTemp); //conecta la variable adc float con el pin de salida
-  //Voltaje = readADC_Cal(LM35_Sensor); // lee adc en voltaje
-  LM35_Temp_Sensor = Voltaje / 10; //como el voltaje esta en mV,lo divido entre 10
+digitalWrite(d1, HIGH); //controla el primer display = decenas
+digitalWrite(d2, LOW);
+digitalWrite(d3, LOW);
+Display7S(decenas);
+distiempo;
 
-  delay (100);
+digitalWrite(d1, LOW); 
+digitalWrite(d2, HIGH); //controla el segundo display = unidades
+digitalWrite(d3, LOW);
+Display7S(unidades);
+distiempo;
 
-  //Imprimir en pantalla de Viasual para comprobar lectura
-  Serial.print("Temperatura = ");
-  Serial.print("LM35_Temp_Sensor");
-  Serial.print(" °C ");
+digitalWrite(d1, LOW); 
+digitalWrite(d2, LOW); 
+digitalWrite(d3, HIGH);//controla el tercer display = decimales
+Display7S(decimales);
+distiempo;
+
+//llamo a las demas funciones
+b1Temp();
+LEDStemp();
+serfuncionServo();
+
 }
 
 //calibracion y lectura de ADC
@@ -266,4 +287,118 @@ void serfuncionServo()
 //*****************************************************************************************
 //Función Display
 //*****************************************************************************************
+void Display7S(int modo)
+{
+//hago las operaciones para cada que display imprima cada valor
+decenas = (LM35_Temp_Sensor) / (10);
+unidades = (LM35_Temp_Sensor) - (decenas*10);
+decimales = (LM35_Temp_Sensor*10) - (decenas*100) - (unidades*10);
 
+//traigo los valores para cada numero en el display
+switch (modo)
+    {
+    case 0:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, HIGH);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, LOW);
+        break;
+
+    case 1:
+        digitalWrite(dA, LOW);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, LOW);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, LOW);
+        digitalWrite(dG, LOW);
+        break;
+
+    case 2:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, LOW);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, HIGH);
+        digitalWrite(dF, LOW);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 3:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, LOW);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 4:
+        digitalWrite(dA, LOW);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, LOW);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 5:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, LOW);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 6:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, LOW);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, HIGH);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 7:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, LOW);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, LOW);
+        digitalWrite(dG, LOW);
+        break;
+
+    case 8:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, HIGH);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, HIGH);
+        break;
+
+    case 9:
+        digitalWrite(dA, HIGH);
+        digitalWrite(dB, HIGH);
+        digitalWrite(dC, HIGH);
+        digitalWrite(dD, HIGH);
+        digitalWrite(dE, LOW);
+        digitalWrite(dF, HIGH);
+        digitalWrite(dG, HIGH);
+        break;
+
+    default:
+        break;
+    }
+
+}
