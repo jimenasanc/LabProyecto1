@@ -73,8 +73,6 @@ void configurarPWM(void);
 
 void LEDStemp(void);
 
-void serfuncionServo(void);
-
 void Display7S(int LM35_Sensor);
 
 float ReadVoltage(int ADC_Raw);
@@ -84,12 +82,10 @@ float ReadVoltage(int ADC_Raw);
 //*****************************************************************************************
 int LM35_Sensor = 0;          //resultado, almacena la conversi[on del adc]
 float LM35_Temp_Sensor = 0.0; //temp medida
-//float Voltaje = 0.0;
-int LM35sense = 0; //para el display
 
 //en vez de usar delay, usar[e esta funci[on]]
 long lastTime;
-int sampleTime = 5;
+int sampleTime = 3000;
 
 //estado para el boton
 int b1State = 0;
@@ -104,7 +100,6 @@ float sDutyCycle = 0.0;
 int decenas = 0;
 int unidades = 0;
 int decimales = 0;
-int entero = 0;
 
 //filtro EMA
 double adcfilt = 0; //ema. media móvil exponencial
@@ -137,7 +132,7 @@ void setup()
   configurarPWM();
 
   configurarDisplay(dA, dB, dC, dD, dE, dF, dG, dP);
-
+  
   pinMode(d1, OUTPUT);
   pinMode(d2, OUTPUT);
   pinMode(d3, OUTPUT);
@@ -145,7 +140,7 @@ void setup()
   digitalWrite(d1, LOW);
   digitalWrite(d2, LOW);
   digitalWrite(d3, LOW);
-
+  
   //Adafruit
   while (!Serial)
     ;
@@ -163,28 +158,23 @@ void setup()
   //Ya se ha conectado
   Serial.println();
   Serial.println(io.statusText());
+  
 }
-////////////////////////////
-//Configuraci[on de ADC
-///////////////////////////
-float ReadVoltage(int ADC_Raw)
-{
-  esp_adc_cal_characteristics_t adc_chars;
-  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_11db, ADC_WIDTH_12Bit, 1100, &adc_chars);
-  return (esp_adc_cal_raw_to_voltage(ADC_Raw, &adc_chars));
-}
+
 //*****************************************************************************************
 //Loop Principal
 //*****************************************************************************************
 void loop()
 {
+  
   //Segmento de Adafruit IO
-    io.run();
+  io.run();
 
-    // save count to the 'counter' feed on Adafruit IO
-    Serial.print("sending temp ");
-    Serial.println(LM35_Temp_Sensor);
-    Termometro->save(LM35_Temp_Sensor);
+  // save count to the 'counter' feed on Adafruit IO
+  Serial.print("sending temp ");
+  Serial.println(contador);
+  Termometro->save(LM35_Temp_Sensor);
+
   if (digitalRead(b1) == LOW)
   {
     b1State = HIGH;
@@ -193,14 +183,14 @@ void loop()
   {
     b1State = LOW;
     //para el sensor de temperatura
-
+    lastTime = millis();
     LM35_Sensor = analogReadMilliVolts(SensorTemp); //conecta la variable adc float con el pin de salida
-    LM35_Temp_Sensor = LM35_Sensor / 10.0;          //como el voltaje esta en mV,lo divido entre 10
+    LM35_Temp_Sensor = LM35_Temp_Sensor / 10.0;     //como el voltaje esta en mV,lo divido entre 10
 
     //Imprimir en pantalla de Viasual para comprobar lectura
     Serial.print("Temperatura = ");
     Serial.print(LM35_Temp_Sensor);
-    Serial.print("LM35_Temp_Sensor");
+    //Serial.println(analogReadMilliVolts(SensorTemp) / 10.0);
     Serial.println(" °C ");
   }
   Display7S(LM35_Sensor); //cálculos
@@ -208,7 +198,7 @@ void loop()
   digitalWrite(d1, HIGH); //controla el primer display = decenas
   digitalWrite(d2, LOW);
   digitalWrite(d3, LOW);
-  desplegar7Seg(decenas);
+  Display7S(decenas);
   desplegarPunto(0);
 
   lastTime = millis();
@@ -217,7 +207,7 @@ void loop()
   digitalWrite(d1, LOW);
   digitalWrite(d2, HIGH); //controla el segundo display = unidades
   digitalWrite(d3, LOW);
-  desplegar7Seg(unidades);
+  Display7S(unidades);
   desplegarPunto(1);
 
   lastTime = millis();
@@ -227,7 +217,7 @@ void loop()
   digitalWrite(d1, LOW);
   digitalWrite(d2, LOW);
   digitalWrite(d3, HIGH); //controla el tercer display = decimales
-  desplegar7Seg(decimales);
+  Display7S(decimales);
   desplegarPunto(0);
   lastTime = millis();
   while (millis() < lastTime + sampleTime)
@@ -236,38 +226,14 @@ void loop()
   adcfilt = (alpha * LM35_Temp_Sensor) + ((1 - alpha) * adcfilt); //filtro ema
 
   //llamo a las demas funciones
-  //configurarPWM();
-  //b1Temp();
   LEDStemp();
-  serfuncionServo();
 }
-
-//*****************************************************************************************
-//Función temperatura
-//*****************************************************************************************
-/*
-void b1Temp()
+float ReadVoltage(int ADC_Raw)
 {
-  if (digitalRead(b1) == LOW)
-  {
-    b1State = HIGH;
-  }
-  else if (b1State == HIGH)
-  {
-    b1State = LOW;
-    //para el sensor de temperatura
-
-    LM35_Sensor = analogReadMilliVolts(SensorTemp); //conecta la variable adc float con el pin de salida
-    LM35_Temp_Sensor = LM35_Sensor / 10.0; //como el voltaje esta en mV,lo divido entre 10
-
-    //Imprimir en pantalla de Viasual para comprobar lectura
-    Serial.print("Temperatura = ");
-    Serial.println(LM35_Temp_Sensor);
-    Serial.print("LM35_Temp_Sensor");
-    Serial.print(" °C ");
-  }
+  esp_adc_cal_characteristics_t adc_chars;
+  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_11db, ADC_WIDTH_12Bit, 1100, &adc_chars);
+  return (esp_adc_cal_raw_to_voltage(ADC_Raw, &adc_chars));
 }
-*/
 
 //*****************************************************************************************
 //Configuración de función de PWM
@@ -290,7 +256,7 @@ void configurarPWM()
 }
 
 //*****************************************************************************************
-//Función de LEDS
+//Función de LEDS y servo
 //*****************************************************************************************
 void LEDStemp()
 {
@@ -300,6 +266,10 @@ void LEDStemp()
     ledcWrite(pwmChannel1, 0);
     ledcWrite(pwmChannel2, 255);
     ledcWrite(pwmChannel3, 0);
+
+    sDutyCycle = 7.8;
+
+    ledcWrite(pwmChannel4, sDutyCycle);
   }
   //si la temperatura esta arriba de 37°C y abajo de 37.5°C , se enciende la led azul
   if (37.0 > LM35_Temp_Sensor && LM35_Temp_Sensor < 37.5)
@@ -307,6 +277,10 @@ void LEDStemp()
     ledcWrite(pwmChannel1, 0);
     ledcWrite(pwmChannel2, 0);
     ledcWrite(pwmChannel3, 255);
+
+    sDutyCycle = 18;
+
+    ledcWrite(pwmChannel4, sDutyCycle);
   }
   //si la temperatura es mayor a 37.5°C, el color del semaforo es rojo
   if (LM35_Temp_Sensor >= 37.5)
@@ -314,150 +288,21 @@ void LEDStemp()
     ledcWrite(pwmChannel1, 255);
     ledcWrite(pwmChannel2, 0);
     ledcWrite(pwmChannel3, 0);
-  }
-}
 
-//*****************************************************************************************
-//Función de Servo
-//*****************************************************************************************
-void serfuncionServo()
-{
-
-  if (LM35_Temp_Sensor < 37.0) //pase el duty cycle a 8 bits, por lo que el rango irá de 7 a 32
-  {
-    sDutyCycle = 7.8;
-
-    ledcWrite(pwmChannel4, sDutyCycle);
-  }
-  else if (37.0 < LM35_Temp_Sensor && LM35_Temp_Sensor < 37.5)
-  {
-    sDutyCycle = 18;
-
-    ledcWrite(pwmChannel4, sDutyCycle);
-  }
-  else if (LM35_Temp_Sensor > 37.5)
-  {
     sDutyCycle = 26;
 
     ledcWrite(pwmChannel4, sDutyCycle);
   }
 }
+
 //*****************************************************************************************
 //Función de Displays
 //*****************************************************************************************
-void Display7S(int LM35sense)
+void Display7S(int LM35_Sensor)
 {
   //hago las operaciones para cada que display imprima cada valor
-  entero = LM35_Temp_Sensor * 10;
-  decenas = entero / 100;
-  entero = entero - decenas * 100;
-  unidades = entero / 10;
-  entero = entero - unidades * 10;
-  decimales = entero;
-  Serial.print("Temperatura = ");
-  Serial.println(LM35_Sensor);
-  //traigo los valores para cada numero en el display
-  /*switch (LM35sense)
-  {
-  case 0:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, HIGH);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, LOW);
-    break;
+  decenas = LM35_Temp_Sensor / 10;
+  unidades = LM35_Temp_Sensor - (decenas * 10);
+  decimales = (LM35_Temp_Sensor * 10) - (decenas * 100) - (unidades = 10);
 
-  case 1:
-    digitalWrite(dA, LOW);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, LOW);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, LOW);
-    digitalWrite(dG, LOW);
-    break;
-
-  case 2:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, LOW);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, HIGH);
-    digitalWrite(dF, LOW);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 3:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, LOW);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 4:
-    digitalWrite(dA, LOW);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, LOW);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 5:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, LOW);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 6:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, LOW);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, HIGH);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 7:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, LOW);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, LOW);
-    digitalWrite(dG, LOW);
-    break;
-
-  case 8:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, HIGH);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, HIGH);
-    break;
-
-  case 9:
-    digitalWrite(dA, HIGH);
-    digitalWrite(dB, HIGH);
-    digitalWrite(dC, HIGH);
-    digitalWrite(dD, HIGH);
-    digitalWrite(dE, LOW);
-    digitalWrite(dF, HIGH);
-    digitalWrite(dG, HIGH);
-    break;
-
-  }*/
 }
